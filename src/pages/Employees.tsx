@@ -6,8 +6,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import { Employee } from "@/types";
 import { useState } from "react";
 
@@ -194,59 +192,8 @@ const employeeData: Employee[] = [
   }
 ];
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyeVd89EskYlUVSXAEX6XDEnKcDDTt6m6GtPxYgzDMNGPenqGHdufKlf833mV3Tdu7L/exec";
-
-const updateAttendance = async (employeeId: number, status: "present" | "absent" | "late") => {
-  const date = new Date().toISOString().split('T')[0];
-  const time = new Date().toLocaleTimeString();
-  
-  try {
-    const response = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        employeeId,
-        date,
-        time,
-        status,
-      }),
-    });
-    
-    return true;
-  } catch (error) {
-    console.error('Error updating attendance:', error);
-    return false;
-  }
-};
-
 const Employees = () => {
-  const [employees, setEmployees] = useState(employeeData);
-  const { toast } = useToast();
-
-  const handleAttendance = async (employeeId: number, status: "present" | "absent" | "late") => {
-    const success = await updateAttendance(employeeId, status);
-    
-    if (success) {
-      setEmployees(prev =>
-        prev.map(emp =>
-          emp.id === employeeId ? { ...emp, status } : emp
-        )
-      );
-      toast({
-        title: "Attendance Updated",
-        description: `Attendance marked as ${status}`,
-      });
-    } else {
-      toast({
-        title: "Error",
-        description: "Failed to update attendance",
-        variant: "destructive",
-      });
-    }
-  };
+  const [employees] = useState(employeeData);
 
   return (
     <div className="space-y-6">
@@ -260,8 +207,6 @@ const Employees = () => {
             <TableHead>Name</TableHead>
             <TableHead>Position</TableHead>
             <TableHead>Department</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -270,49 +215,6 @@ const Employees = () => {
               <TableCell className="font-medium">{employee.name}</TableCell>
               <TableCell>{employee.position}</TableCell>
               <TableCell>{employee.department}</TableCell>
-              <TableCell>
-                <span
-                  className={`px-2 py-1 rounded-full text-xs ${
-                    employee.status === "present"
-                      ? "bg-green-100 text-green-800"
-                      : employee.status === "absent"
-                      ? "bg-red-100 text-red-800"
-                      : employee.status === "late"
-                      ? "bg-yellow-100 text-yellow-800"
-                      : "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  {employee.status === "not_marked" ? "Not Marked" : employee.status}
-                </span>
-              </TableCell>
-              <TableCell>
-                <div className="flex space-x-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="bg-green-50 hover:bg-green-100"
-                    onClick={() => handleAttendance(employee.id, "present")}
-                  >
-                    Present
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="bg-red-50 hover:bg-red-100"
-                    onClick={() => handleAttendance(employee.id, "absent")}
-                  >
-                    Absent
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="bg-yellow-50 hover:bg-yellow-100"
-                    onClick={() => handleAttendance(employee.id, "late")}
-                  >
-                    Late
-                  </Button>
-                </div>
-              </TableCell>
             </TableRow>
           ))}
         </TableBody>
